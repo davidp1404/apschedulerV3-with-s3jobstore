@@ -53,6 +53,7 @@ setup(
         'gevent': ['gevent'],
         'mongodb': ['pymongo >= 3.0'],
         'redis': ['redis >= 3.0'],
+        's3': ['boto3 >= 1.20.0'],
         'rethinkdb': ['rethinkdb >= 2.4.0'],
         'sqlalchemy': ['sqlalchemy >= 0.8'],
         'tornado': ['tornado >= 4.3'],
@@ -95,6 +96,7 @@ setup(
             'mongodb = apscheduler.jobstores.mongodb:MongoDBJobStore [mongodb]',
             'rethinkdb = apscheduler.jobstores.rethinkdb:RethinkDBJobStore [rethinkdb]',
             'redis = apscheduler.jobstores.redis:RedisJobStore [redis]',
+            's3 = apscheduler.jobstores.s3:S3JobStore [s3]',
             'zookeeper = apscheduler.jobstores.zookeeper:ZooKeeperJobStore [zookeeper]'
         ]
     }
