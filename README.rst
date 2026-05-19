@@ -1,3 +1,44 @@
+Fork Changes: S3 JobStore with Cross-Instance Targeting
+========================================================
+
+This fork adds an **S3-backed job store** (``S3JobStore``) that enables multiple application
+instances to share scheduled jobs via a single S3 bucket. Key features:
+
+- **Cross-instance job targeting** — Jobs carry a ``target_app_id`` glob pattern (e.g. ``web-*``,
+  ``*``) that determines which instances execute them.
+- **Job ID convention** — Encode the target in the job ID using ``::`` separator:
+  ``"my-job::web-*"``. Jobs without a separator default to self-targeting.
+- **Broadcast execution** — Wildcard targets cause all matching instances to independently execute
+  the job on schedule.
+- **Execution receipts** — After each execution, a receipt is written to
+  ``s3://{bucket}/{prefix}/executions/{job_id}/{timestamp}_{app_id}.pkl`` for visibility.
+- **Polling-based discovery** — Each ``get_due_jobs()`` call refreshes from S3 (LIST + GET).
+  Designed for ≤20 jobs with minute-level polling frequency.
+- **Zero extra infrastructure** — Pure S3, no DynamoDB/SQS required.
+
+S3 object layout::
+
+    s3://{bucket}/{prefix}/
+      ├── jobs/{job_id}.pkl
+      └── executions/{job_id}/{timestamp}_{app_id}.pkl
+
+Usage::
+
+    from apscheduler.jobstores.s3 import S3JobStore
+
+    jobstore = S3JobStore(bucket='my-bucket', prefix='scheduler', app_id='web-1')
+    scheduler.add_jobstore(jobstore)
+
+    # Target a specific instance
+    scheduler.add_job(func, 'interval', minutes=5, id='refresh::web-2')
+
+    # Broadcast to all web instances
+    scheduler.add_job(func, 'interval', minutes=5, id='heartbeat::web-*')
+
+See ``openspec/`` for full design documents and specifications.
+
+----
+
 .. image:: https://github.com/agronholm/apscheduler/workflows/Python%20codeqa/test/badge.svg?branch=3.x
   :target: https://github.com/agronholm/apscheduler/actions?query=workflow%3A%22Python+codeqa%2Ftest%22+branch%3A3.x
   :alt: Build Status
